@@ -1,0 +1,38 @@
+version: '3'
+services:
+
+  #Nginx Service
+  webserver:
+    image: nginx
+    container_name: npr_agent_server
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "8001:80"
+    networks:
+      - app-network
+    volumes:
+      - shared:/usr/share/nginx/html/
+
+  app:
+    build:
+      context: .
+      dockerfile: dockerfile.agent
+    container_name: npr_task
+    restart: unless-stopped
+    tty: true
+    working_dir: /app
+    networks:
+      - app-network
+    volumes:
+      - shared:/usr/share/nginx/html/
+
+
+#Docker Networks
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  shared:
+    driver: local
