@@ -9,8 +9,8 @@ import time
 
 
 
-new_media_base_url = "http://here2say.tw:8001/media/"
-NEW_FEED_URL = "http://here2say.tw:8001/ted.xml"
+new_media_base_url = "http://here2say.com:8001/media/"
+NEW_FEED_URL = "http://here2say.com:8001/ted.xml"
 
 #to keep itunes namespace,or it will lost when save to file
 ET.register_namespace('<prefix>','https://www.npr.org/rss/')
@@ -40,7 +40,7 @@ def download_source_rss():
     res = conn.getresponse()
     data = res.read()
     rss = data.decode("utf-8")
-    
+
     fName = 'source.xml'
     with open(fName, 'wt',encoding='utf8') as f:
         f.write(rss)
@@ -57,7 +57,8 @@ def parse_head(xml_file='source.xml'):
     title.text = "My TED Radio Hour"
 
     feed_url = doc.find('channel/itunes:new-feed-url',ns)
-    feed_url.text = NEW_FEED_URL
+    if feed_url:
+        feed_url.text = NEW_FEED_URL
     doc.write(xml_file, xml_declaration=True)
 
 
@@ -88,7 +89,7 @@ def parse_media_item(xml_file='source.xml'):
 
         pattern = re.compile(r'([\w|\d|\-]+\.mp3)')   #match file name
         rs = pattern.findall(resource.attrib["url"])
-   
+
         if len(rs)<1:
             print("can not match any file name \n")
             continue
@@ -110,13 +111,13 @@ def parse_media_item(xml_file='source.xml'):
             if not file_exist:
                 print('try opening media url ...')
                 r = requests.get(resource.attrib["url"])
-                with open(full_path, 'wb') as f:  
+                with open(full_path, 'wb') as f:
                     f.write(r.content)
         except Exception as ex:
             print("parse media item error \n")
             print(str(ex))
-            continue 
-        
+            continue
+
         resource.attrib["url"] = new_media_base_url + file_name
         new_xml_path = xml_save_path + 'ted.xml'
         doc.write(new_xml_path, xml_declaration=True)
@@ -127,7 +128,7 @@ def task():
     f = download_source_rss()
     parse_head(f)
     parse_media_item(f)
-    
+
 
 if __name__ == "__main__":
     while True:
